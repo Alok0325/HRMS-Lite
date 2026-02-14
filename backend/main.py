@@ -12,15 +12,25 @@ app = FastAPI(
 )
 
 # CORS — allow configured origins (comma-separated) or fall back to permissive for dev
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+raw_origins = os.getenv("ALLOWED_ORIGINS", "*").strip()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if raw_origins == "*":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Register routers
 app.include_router(employees.router)
